@@ -1,0 +1,36 @@
+Information about the poorly name, RAI (Rails Asterisk Integrator) to go here.
+
+The basic idea: integrate functionality of RAGI and RAMI while making asterisk be on par with
+rhtml or rjs as a possible "display".  Also, integrating calls started from a web session with that
+session's data.
+
+So, what's here:
+Currently the functional part is modifications and addition to RAGI.  In summary
+
+script/asterisk_server - starts a rails AGI server without starting any web server.
+controllers/routing - use rails controllers and native routing so that logic that applies to both a web interface and voice interface does not have to be repeated
+render_asterisk - function that gives access to CallConnection object from controllers
+cc.link_to_dtmf - function that allows numbers inputed into keypad to corrospond to links to other functions
+params - agi params as well as params introduced in link_to_dtmf passed into params hash in controller
+
+TODO: 
+
+*Sessions
+*RAMI:
+Rami implementation not working yet so not included.
+Big idea is you can do call origination from RAMI.  If you do call origination from a web session and then pass that call back to AGI, the web session and agi session are linked.
+
+
+This Example:
+This is the simon game, taken from the RAGI package and re-factored into a ActionController.  It also includes a web-based version of the game.
+
+For agi version:
+from shell, start script/asterisk_server
+have asterisk call agi://agi_server_name/games/simon
+obviously the simon sound files need to be in placed as outlined in the RAGI simon readme
+
+For web version
+from shell, start script/server
+in browser go to, http://server_name/games/simon
+
+

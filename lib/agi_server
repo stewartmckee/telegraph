@@ -1,0 +1,146 @@
+
+# Copyright Zed Shaw
+# Copyright (c) 2007 Jonathan Palley, Idapted Inc.
+# All rights reserved
+
+
+#!/usr/bin/env ruby
+require 'optparse'
+require 'ostruct'
+require 'pp'
+require 'rubygems'
+
+class AsteriskServerOptions
+  def self.parse(args)
+    options=OpenStruct.new
+    options.daemonize = false
+    options.pid_file = 'log/asterisk_server.pid'
+    options.environment = "development"
+    options.cwd = Dir.pwd
+    options.action = 'start'
+    options.log_file = 'log/asterisk_server.log'
+    #Not implamented
+    options.port = 0
+    options.notify_on_close = ''
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: asterisk_server [options]"
+      opts.separator  ""
+      opts.separator "Specific options:"
+
+      opts.on('-d', '--daemon', 'run as daemon', 'runs in shell by default') do |ext|
+        options.daemonize=true
+      end
+      opts.on('-p','--pid FILE', 'Directory', 'defaults to log directory') do |ext|
+         options.pid_file = ext
+      end
+      opts.on('-e','--environment ENV', "Rails environment to run as") do |ext|
+        options.environment = ext
+      end
+      opts.on('-a', '--action [TYPE]', [:start, :stop], "Action To Do") do |action|
+        options.action = action
+      end
+      opts.on('-C PATH', 'Change dir before starting') do |path|
+        options.cwd = path
+      end
+    
+    end
+
+  opts.parse!(args)
+  options
+    end
+
+end
+
+class ServerHandler
+   def initialize
+     @options=AsteriskServerOptions.parse(ARGV)
+     @pid_file =File.join(@options.cwd, @options.pid_file)
+     self.send(@options.action)
+   
+     
+   end
+
+   def start
+      if @options.daemonize
+        daemonize
+      end
+      write_pid_file
+ 
+      ENV["RAILS_ENV"]=@options.environment
+      require File.dirname(__FILE__) + '/../config/boot'
+      require RAILS_ROOT + "/config/environment"
+      @server = Telegraph::CallServer.new
+      setup_signals
+      @server.run
+   
+   end
+   def stop
+   
+    send_signal("TERM", @pid_file)
+   end
+   
+   def kill
+    @server.shutdown
+   end
+
+   def setup_signals
+   # forced shutdown, even if previously restarted (actually just like TERM but for CTRL-C)
+       # clean up the pid file always
+      at_exit { File.unlink(@pid_file) if @pid_file and File.exists?(@pid_file) }
+      
+      trap("INT") { log "INT signal received."; kill}
+
+     
+      if RUBY_PLATFORM !~ /mswin/
+        # graceful shutdown
+        trap("TERM") { log "TERM signal received."; kill }
+
+
+        log "Signals ready.  TERM => stop.  USR2 => restart.  INT => stop (no restart)."
+      else
+        log "Signals ready.  INT => stop (no restart)."
+      end
+
+   end
+   def send_signal(signal, pid_file)
+   begin 
+     pid = open(pid_file).read.to_i
+     print "Sending #{signal} to asterisk_server at PID #{pid}..."
+     Process.kill(signal, pid)
+   rescue Errno::ESRCH
+     print "Process does not exist.  Not running."
+   rescue Errno::ENOENT
+      print "No .pid file.  Not shutting down"
+    end
+  
+    puts "Done."
+    end
+   def log(msg)
+     STDERR.print "** ", msg, "\n"
+   end
+   
+  # Writes the PID file but only if we're on windows.
+   def write_pid_file
+     if RUBY_PLATFORM !~ /mswin/
+        open(@pid_file,"w") {|f| f.write(Process.pid) }
+      end
+   end
+  def daemonize(options={})
+     #ops = resolve_defaults(options)
+      # save this for later since daemonize will hose it
+      if RUBY_PLATFORM !~ /mswin/
+        require 'daemons/daemonize'
+        log 'daemonizing'
+        Daemonize.daemonize(log_file=File.join(@options.cwd, @options.log_file))
+        log File.join(@options.cwd, @options.pid_file)
+        # change back to the original starting directory
+        Dir.chdir(@options.cwd)
+
+      else
+        log "WARNING: Win32 does not support daemon mode."
+      end
+    end
+
+end
+ServerHandler.new
