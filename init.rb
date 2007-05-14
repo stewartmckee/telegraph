@@ -1,5 +1,4 @@
 # Include hook code here
-require 'telegraph'
 require 'agi'
 require 'agi_request'
 
