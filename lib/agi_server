@@ -4,12 +4,10 @@ require 'ostruct'
 require 'pp'
 require 'rubygems'
 
+
 # Copyright Zed Shaw
 # Copyright (c) 2007 Jonathan Palley, Idapted Inc.
 # All rights reserved
-
-
-
 
 class AsteriskServerOptions
   def self.parse(args)

@@ -48,6 +48,8 @@ module Telegraph
       @config[:BindAddress]='localhost'
      # @config[:Port]=nil
       Telegraph.LOGGER = @config[:Logger]
+      ActionController::Base.logger = Telegraph.LOGGER
+      
     end
 
     def run
@@ -69,24 +71,30 @@ module Telegraph
        
             # the default call handler comes from config environment.rb
             prepare_application
+            
             ActionController::Routing::Routes.recognize(cc.request)
 
+            # bit of a hack.  Need to setup next_action/next_controller
+            cc.request.next_action = cc.request.parameters['action']
+            cc.request.next_controller = cc.request.parameters['controller'].camelize + 'Controller'
             #Loops until we are done executing all the actions for this call
             while cc.request.next_action !=nil do
-              next_action=cc.request.next_action
+              path_params={:action=>cc.request.next_action, :controller=>cc.request.next_controller}
+              cc.request.path_parameters = path_params
               #cc.request.params['action'] = next_action
               cc.request.next_action=nil
               response=ActionController::CgiResponse.new(cgi)
-              cc.request.next_controller.constantize.new.process(cc.request,response, next_action)
+              cc.request.next_controller.constantize.new.process(cc.request,response)
             end
           }
           Telegraph.LOGGER.info("#{self.class.name}: server shutdown port=#{@config[:Port]}")
           
         rescue StandardError => err
-          Telegraph.LOGGER.info('there is an error here, but we got it')
+          Telegraph.LOGGER.info('There is an error here, but we got it')
           Telegraph.LOGGER.error("#{err.message}")
           Telegraph.LOGGER.error(err.backtrace.join("\n"))
          rescue
+           puts "error"
            Telegraph.LOGGER.info('error!')
         end
         

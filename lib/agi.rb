@@ -29,19 +29,21 @@ module ActionController
 module ActionController
   class Base
     def render_voice(&block)
-      if block_given?
-        begin
+      begin
+        if block_given?
           yield request.cc
-        rescue Errno::EPIPE
+        else
+          #This needs improvement.  Rely's too much on defaults
+          f= "#{template_root}/#{default_template_name(action_name)}.voice"
+          render_voice do |voice|
+            eval File.read(f)
+          end
+        end
+      rescue Errno::EPIPE 
+        call_hung_up
+      rescue Errno::ECONNRESET
         #User hungup.  If the hung_up callback exists, call it
         call_hung_up
-      end
-      else
-        #This needs improvement.  Rely's too much on defaults
-        f= "#{template_root}/#{default_template_name}.voice"
-        render_voice do |voice|
-         eval File.read(f)
-        end
       end
       @performed_render = true
     end
@@ -82,8 +84,8 @@ module Telegraph
       @elements << {:type=>'submit', :args=>args}
     end
     
-    def record_input(filename, param, max_time=10, beep=true, silence_detect=10)
-      @elements << {:type=>'record_input',:filename=>filename,:param=>param, :max_time=>max_time, :beep=>beep, :silence_detect=>silence_detect}
+    def record_input(label, filename, param, max_time=10, beep=true, silence_detect=10)
+      @elements << {:type=>'record_input',:label=>label, :filename=>filename,:param=>param, :max_time=>max_time, :beep=>beep, :silence_detect=>silence_detect}
     end
   end
 
@@ -189,7 +191,6 @@ module Telegraph
     def say_element(item)
       if item.match(/^Datetime:/) then
         item.delete!('Datetime:')
-        puts item
         say_datetime(item)
       elsif item.to_i > 0 || item=='00'
         say_number(item.to_i.to_s)
@@ -213,6 +214,7 @@ module Telegraph
     
     
     def record_input_element(element)
+      play element[:label]
       ret = record_file(Telegraph::Config::Globals["RECORDINGPATH"] + '/' + element[:filename], element[:max_time], element[:beep], element[:silence_detect])
 
       @params = nested_merge(@params, extract_hash(element[:param],element[:filename]))

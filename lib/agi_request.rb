@@ -4,9 +4,8 @@
 module Telegraph
 
  class TelegraphRequest < ActionController::AbstractRequest
-    attr_accessor :session_options, :query_parameters, :request_paramters, :path, :session, :env
+    attr_accessor :session_options, :path, :session, :env
     attr_accessor :host, :cc, :next_action, :next_controller, :path
-    attr_accessor :params
     
     #
     def initialize(cc, cgi, query_parameters ={}, request_parameters = {}, session_opts = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
@@ -14,7 +13,7 @@ module Telegraph
       @query_parameters   = query_parameters 
       @request_parameters = request_parameters
       @session_options            = session_opts
-      
+      @redirect = false
       @env = {}
       
       #these allow us to do redirects (or psuedo form submits)to other actions since we can't do a HTTP 302
@@ -24,15 +23,15 @@ module Telegraph
       
       
       logger=Telegraph.LOGGER
+      
       @cgi = cgi
-      @host                    = "agi.host"
+      @host                    = "agi"
       @request_uri             = "/"
       self.remote_addr         = "0.0.0.0"        
       @env["SERVER_PORT"]      = 84837
-      @env['REQUEST_METHOD']   = "GET"
+      @env['REQUEST_METHOD']   = "POST"
       @path=cc.agi_url
-      
-      parameters
+      puts cc.params['session_id']
       @session_options['session_id'] = cc.params['session_id']
       
       super()
@@ -48,24 +47,20 @@ module Telegraph
 
     #copies parameters from the agi request (in the call_connection object)
     #if this is a redirect we add in the redict parameters
-    def parameters()
-      params = @cc.params.dup
-      params.update(@redirect_parameters) unless @redirect_parameters.nil?
-      params
-    end
-
-    #setups the next action/controller for redirect and form submit.
-    def path_parameters=(args)
-      @next_action=args['action']
-      @next_controller=args['controller'].camelize + 'Controller'
+    def request_parameters
+      @cc.params.dup
     end
     
-    #allows one to go from one action to another
+    def query_parameters
+      @redirect_parameters || {}
+    end
+    
+
     def create_redirect(args)
-
+    
       @next_action=args.delete(:action).to_s
-      @next_controller = args.delete(:controller).to_s unless args[:controller].nil?
-
+      @next_controller = args.delete(:controller).to_s.camelize + 'Controller' unless args[:controller].nil?
+      
       @redirect_parameters = args
       parameters
     end

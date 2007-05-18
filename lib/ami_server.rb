@@ -427,7 +427,7 @@ require 'webrick'
     def connect
       puts 'Connecting to Asterisk...'
       begin
-        @socket = TCP.new(@host, @port)
+        @socket = TCPSocket.new(@host, @port)
         challenge_login = {:action =>'challenge', :authtype => 'md5'}
         write_action(challenge_login)
         
@@ -590,7 +590,6 @@ require 'webrick'
     def write_line(line="")
       unless @socket.nil? 
         @socket.write(line + CRLF)
-        puts line
       else
         raise IOError
       end
@@ -598,10 +597,8 @@ require 'webrick'
     
     def read_line
       unless @socket.nil?
-        puts "getting..."
         @socket.gets
         a = $_
-        puts $_
         $_
       else
         raise IOError

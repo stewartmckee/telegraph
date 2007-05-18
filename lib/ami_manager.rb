@@ -90,7 +90,7 @@ module Telegraph
     def self.exec_func(func_specs, args= {})
         if func_specs
           if (func_specs[1] - args.keys).empty?
-            re = Telegraph::AMIManager.new
+            re = self.new
             re.do_action({:action=> func_specs[0]}.merge(args))
             re
           else
@@ -105,7 +105,7 @@ module Telegraph
       if self.connection
         @response = self.connection.do_action(args)  
       else
-        if AsteriskManager.reconnect!
+        if Telegraph::AMIManager.reconnect!
            do_action(args)
         else
           raise AMIConnectionError

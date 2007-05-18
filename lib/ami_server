@@ -1,15 +1,20 @@
+# Copyright Zed Shaw
+# Copyright (c) 2007 Jonathan Palley, Idapted Inc.
+# All rights reserved
+
+
 #!/usr/bin/env ruby
+#require File.dirname(__FILE__) + '/../config/boot'
+#require RAILS_ROOT + "/config/environment"
+#server = RAI::AMIClient.new_with_server(:username=>'trainer_manager', :secret=>'veecue')
+#server.watch_for_events
+
 
 require 'optparse'
 require 'ostruct'
 require 'pp'
 require 'rubygems'
 require 'drb'
-
-# Copyright Zed Shaw
-# Copyright (c) 2007 Jonathan Palley, Idapted Inc.
-# All rights reserved
-
 
 class AMIServerOptions
   def self.parse(args)

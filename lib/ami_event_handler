@@ -1,14 +1,13 @@
 #!/usr/bin/env ruby
+# Copyright Zed Shaw
+# Copyright (c) 2007 Jonathan Palley, Idapted Inc.
+# All rights reserved
 
 require 'optparse'
 require 'ostruct'
 require 'pp'
 require 'rubygems'
 require 'drb'
-
-# Copyright Zed Shaw
-# Copyright (c) 2007 Jonathan Palley, Idapted Inc.
-# All rights reserved
 
 class AMIEventHandlerOptions
   def self.parse(args)
