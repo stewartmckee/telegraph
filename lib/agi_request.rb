@@ -4,17 +4,18 @@
 module Telegraph
 
  class TelegraphRequest < ActionController::AbstractRequest
-    attr_accessor :session_options, :path, :session, :env
+    attr_accessor :session_options, :path, :path_parameters, :session, :env, :cookies, :content_type
     attr_accessor :host, :cc, :next_action, :next_controller, :path
     
-    #
-    def initialize(cc, cgi, query_parameters ={}, request_parameters = {}, session_opts = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
-      @cc = cc      
+    def initialize(cc, cgi, query_parameters={}, request_parameters={}, session_opts = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
+      @cc                 = cc # Telegraph::CallConnection
       @query_parameters   = query_parameters 
       @request_parameters = request_parameters
-      @session_options            = session_opts
-      @redirect = false
-      @env = {}
+      @session_options    = session_opts
+      @redirect           = false
+      @env                = {}
+      @cookies            = {}
+      @path_parameters    = {}
       
       #these allow us to do redirects (or psuedo form submits)to other actions since we can't do a HTTP 302
       @next_action             = nil
@@ -31,11 +32,14 @@ module Telegraph
       @env["SERVER_PORT"]      = 84837
       @env['REQUEST_METHOD']   = "POST"
       @path=cc.agi_url
-      puts cc.params['session_id']
       @session_options['session_id'] = cc.params['session_id']
       
       super()
     end
+    def parameters!
+      @parameters = request_parameters.update(query_parameters).update(path_parameters).with_indifferent_access
+    end
+
     def sound?
       true
     end
@@ -43,6 +47,10 @@ module Telegraph
   
      [Mime::VOICE]
      # Mime::Type.new('text/vnd.wap.wml')
+    end
+
+    def content_type
+     @content_type ||= Mime::VOICE
     end
 
     #copies parameters from the agi request (in the call_connection object)
@@ -81,10 +89,6 @@ module Telegraph
       @path || super()
     end
    
-    def request_parameters
-    {}
-    end
-
     def session=(session)
       @session = session
       @session.update

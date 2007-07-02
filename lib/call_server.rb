@@ -45,8 +45,9 @@ module Telegraph
       @config[:Logger] ||= WEBrick::Log::new
       @config[:ParentStopCallback] = @config[:StopCallback] if @config[:StopCallback]
       @config[:StopCallback] = method('shutdown_done')
-      @config[:BindAddress]='localhost'
-     # @config[:Port]=nil
+      @config[:BindAddress] = Telegraph::Config::Globals['agi_server'] || 'localhost'
+      @config[:Port] = Telegraph::Config::Globals['agi_port'] || Telegraph::DEFAULT_PORT
+
       Telegraph.LOGGER = @config[:Logger]
       ActionController::Base.logger = Telegraph.LOGGER
       
@@ -60,11 +61,11 @@ module Telegraph
       if (@incomingcallsocket == nil)
         begin
           # code to executed in a thread
-          Telegraph.LOGGER.info("#{self.class.name}: default-handler=#{@config[:DefaultHandler].to_s} port=#{@config[:Port]}")
+          Telegraph.LOGGER.info("#{self.class.name}: default-handler = #{@config[:DefaultHandler].to_s} port = #{@config[:Port]}")
          
           @incomingcallsocket = WEBrick::GenericServer.new( @config )
    
-          @incomingcallsocket.start{ |sock|
+          @incomingcallsocket.start do |sock|
             ENV['REQUEST_METHOD'] = "post"
             cgi=CGI.new
             cc = CallConnection.new(sock, cgi)
@@ -73,12 +74,17 @@ module Telegraph
             prepare_application
             
             ActionController::Routing::Routes.recognize(cc.request)
+            #Telegraph.LOGGER.info "request parameters: #{cc.request.parameters.inspect}"
+            #Telegraph.LOGGER.info "request parameters!: #{cc.request.parameters!.inspect}"
+
+            # force the parameters to update
+            cc.request.parameters!
 
             # bit of a hack.  Need to setup next_action/next_controller
             cc.request.next_action = cc.request.parameters['action']
             cc.request.next_controller = cc.request.parameters['controller'].camelize + 'Controller'
             #Loops until we are done executing all the actions for this call
-            while cc.request.next_action !=nil do
+            while !cc.request.next_action.nil? do
               path_params={:action=>cc.request.next_action, :controller=>cc.request.next_controller}
               cc.request.path_parameters = path_params
               #cc.request.params['action'] = next_action
@@ -86,7 +92,7 @@ module Telegraph
               response=ActionController::CgiResponse.new(cgi)
               cc.request.next_controller.constantize.new.process(cc.request,response)
             end
-          }
+					end
           Telegraph.LOGGER.info("#{self.class.name}: server shutdown port=#{@config[:Port]}")
           
         rescue StandardError => err
