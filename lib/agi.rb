@@ -215,7 +215,7 @@ module Telegraph
     
     def record_input_element(element)
       play element[:label]
-      ret = record_file(Telegraph::Config::Globals["RECORDINGPATH"] + '/' + element[:filename], element[:max_time], element[:beep], element[:silence_detect])
+      ret = record_file(Telegraph::Config::Globals["recording_path"] + '/' + element[:filename], element[:max_time], element[:beep], element[:silence_detect])
 
       @params = nested_merge(@params, extract_hash(element[:param],element[:filename]))
       #params.update(extract_hash(element[:param],element[:filename]))
@@ -227,7 +227,7 @@ module Telegraph
     
     def full_sound_path(filename)
     
-      name =Telegraph::Config::Globals["SOUNDPATH"] + '/' + filename
+      name =Telegraph::Config::Globals["sound_path"] + '/' + filename
       if File.exists?(name + '.gsm') || File.exists?(name + '.sln')
         name
       else
