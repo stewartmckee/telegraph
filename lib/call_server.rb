@@ -87,7 +87,8 @@ module Telegraph
             while !cc.request.next_action.nil? do
               path_params={:action=>cc.request.next_action, :controller=>cc.request.next_controller}
               cc.request.path_parameters = path_params
-              #cc.request.params['action'] = next_action
+              # force the parameters to update
+              cc.request.parameters!
               cc.request.next_action=nil
               response=ActionController::CgiResponse.new(cgi)
               cc.request.next_controller.constantize.new.process(cc.request,response)

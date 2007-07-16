@@ -73,7 +73,7 @@ class ServerHandler
       end
       write_pid_file
  
-      #ENV["RAILS_ENV"]=@options.environment
+      ENV["RAILS_ENV"]=@options.environment
       require File.dirname(__FILE__) + '/../config/boot'
       require RAILS_ROOT + "/config/environment"
       require File.dirname(__FILE__) + '/../vendor/plugins/telegraph/lib/config'
