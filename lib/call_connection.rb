@@ -24,6 +24,7 @@ module Telegraph
   class CmdNotFoundError < StandardError; end
   class ApplicationError < StandardError; end
   class SoundFileNotFoundError < StandardError; end
+  class ChannelHungup < StandardError; end
 
   CALLERID = 'agi_callerid'
 
@@ -463,7 +464,9 @@ module Telegraph
 			else
         # there is an int result we hope.
         value = _res[eqindex+1, _res.length]
-        return value.chomp!
+        returning value.chomp! do |val|
+          raise ChannelHungup if val == "-1"
+        end
 			end
 		end
     

@@ -74,16 +74,17 @@ class ServerHandler
       write_pid_file
  
       #ENV["RAILS_ENV"]=@options.environment
-      #require File.dirname(__FILE__) + '/../config/boot'
-      #require RAILS_ROOT + "/config/environment"
-      require File.dirname(__FILE__) + '/../vendor/plugins/rai/lib/ami_server'
+      require File.dirname(__FILE__) + '/../config/boot'
+      require RAILS_ROOT + "/config/environment"
+      require File.dirname(__FILE__) + '/../vendor/plugins/telegraph/lib/config'
+      require File.dirname(__FILE__) + '/../vendor/plugins/telegraph/lib/ami_server'
       
       #First, start AMI DrbServer
       ami_server = Telegraph::AMIServer.new(:username=>'trainer_manager', :secret=>'veecue')
       ami_server.connect
       puts "Loaded AMI Server"
       puts ami_server
-      DRb.start_service('druby://localhost:9000', ami_server)
+      DRb.start_service(Telegraph::Config::Globals["ami_server"], ami_server)
       puts "DRb Started"
       DRb.thread.join
       

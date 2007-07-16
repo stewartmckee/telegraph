@@ -59,7 +59,7 @@ module Telegraph
       return false if @@last_connect_attempt and Time.now - @@last_connect_attempt < 60
       @@last_connect_attempt = Time.now
 
-      @@connection = Telegraph::AMIClient.new("druby://localhost:9000")
+      @@connection = Telegraph::AMIClient.new(Telegraph::Config::Globals["ami_server"])
       return @@connection
     end
     

@@ -3,6 +3,7 @@
 development:
   agi_server: "192.168.50.151"
   agi_port: 4574
+  ami_server: druby://localhost:9000
   outgoing_call_path: /var/spool/asterisk/outgoing
   wakeup_call_path: /var/spool/asterisk/wakeups
   sound_path: /var/lib/asterisk/sounds
@@ -11,6 +12,7 @@ development:
 test:
   agi_server: 192.168.50.151
   agi_port: 4574
+  ami_server: druby://localhost:9000
   outgoing_call_path: /var/spool/asterisk/outgoing
   wakeup_call_path: var/spool/asterisk/wakeups
   sound_path: 
@@ -19,6 +21,7 @@ test:
 production:
   agi_server: 192.168.50.151
   agi_port: 4574
+  ami_server: druby://localhost:9000
   outgoing_call_path: /var/spool/asterisk/outgoing
   wakeup_call_path: var/spool/asterisk/wakeups
   sound_path: 
