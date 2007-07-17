@@ -53,6 +53,36 @@ module Telegraph
       
     end
 
+    def handle_request(sock)
+      ENV['REQUEST_METHOD'] = "post"
+      cgi=CGI.new
+      cc = CallConnection.new(sock, cgi)
+ 
+      # the default call handler comes from config environment.rb
+      prepare_application
+      
+      ActionController::Routing::Routes.recognize(cc.request)
+      #Telegraph.LOGGER.info "request parameters: #{cc.request.parameters.inspect}"
+      #Telegraph.LOGGER.info "request parameters!: #{cc.request.parameters!.inspect}"
+
+      # force the parameters to update
+      cc.request.parameters!
+
+      # bit of a hack.  Need to setup next_action/next_controller
+      cc.request.next_action = cc.request.parameters['action']
+      #Loops until we are done executing all the actions for this call
+      while cc.should_continue? do
+        perform_action(cc,cgi)
+      end
+    end
+    
+    def perform_action(cc,cgi)
+      cc.request.parameters!
+      cc.request.next_action=nil
+      response=ActionController::CgiResponse.new(cgi)
+      cc.controller_class.new.process(cc.request,response)      
+    end
+    
     def run
       @mutex = Mutex.new
       @signal = ConditionVariable.new
@@ -66,33 +96,7 @@ module Telegraph
           @incomingcallsocket = WEBrick::GenericServer.new( @config )
    
           @incomingcallsocket.start do |sock|
-            ENV['REQUEST_METHOD'] = "post"
-            cgi=CGI.new
-            cc = CallConnection.new(sock, cgi)
-       
-            # the default call handler comes from config environment.rb
-            prepare_application
-            
-            ActionController::Routing::Routes.recognize(cc.request)
-            #Telegraph.LOGGER.info "request parameters: #{cc.request.parameters.inspect}"
-            #Telegraph.LOGGER.info "request parameters!: #{cc.request.parameters!.inspect}"
-
-            # force the parameters to update
-            cc.request.parameters!
-
-            # bit of a hack.  Need to setup next_action/next_controller
-            cc.request.next_action = cc.request.parameters['action']
-            cc.request.next_controller = cc.request.parameters['controller'].camelize + 'Controller'
-            #Loops until we are done executing all the actions for this call
-            while !cc.request.next_action.nil? do
-              path_params={:action=>cc.request.next_action, :controller=>cc.request.next_controller}
-              cc.request.path_parameters = path_params
-              # force the parameters to update
-              cc.request.parameters!
-              cc.request.next_action=nil
-              response=ActionController::CgiResponse.new(cgi)
-              cc.request.next_controller.constantize.new.process(cc.request,response)
-            end
+            handle_request(sock)
 					end
           Telegraph.LOGGER.info("#{self.class.name}: server shutdown port=#{@config[:Port]}")
           

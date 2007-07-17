@@ -37,7 +37,10 @@ module Telegraph
       super()
     end
     def parameters!
+      @parameters ||= {}
+      controller = @parameters[:controller]
       @parameters = request_parameters.update(query_parameters).update(path_parameters).with_indifferent_access
+      @parameters[:controller] ||= controller
     end
 
     def sound?
@@ -65,11 +68,11 @@ module Telegraph
     
 
     def create_redirect(args)
-    
-      @next_action=args.delete(:action).to_s
-      @next_controller = args.delete(:controller).to_s.camelize + 'Controller' unless args[:controller].nil?
-      
-      @redirect_parameters = args
+      @redirect_parameters = args    
+      @next_action=args[:action].to_s
+      @next_controller = args[:controller].to_s.camelize + 'Controller' unless args[:controller].nil?
+      #reset the parameters to include the original ones from the routing engine
+      @path_parameters = {}
       parameters
     end
 

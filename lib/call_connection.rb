@@ -416,7 +416,7 @@ module Telegraph
   	def read_line
   		begin
   			_res = @socket.gets   #gets
-  			#RAI.LOGGER.info("READ LINE: " + _res.to_s)
+  			Telegraph.LOGGER.debug("READ LINE: " + _res.to_s)
   		rescue Errno::EINVAL
   			raise ApplicationError
   		end

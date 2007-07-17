@@ -102,6 +102,14 @@ module Telegraph
       @request=Telegraph::TelegraphRequest.new(self,cgi,nil,nil,ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)  
     end
 
+    def should_continue?
+      !request.next_action.nil?
+    end
+    
+    def controller_class
+      ((request.parameters['controller']||request.next_controller)+"_controller").classify.constantize
+    end
+    
     def redirect(args)
       @request.create_redirect args
     end
