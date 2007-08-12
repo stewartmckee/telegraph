@@ -574,17 +574,19 @@ require 'webrick'
     end
     
     def write_action(hsh={}, action_id=nil, terminate=true)
-     action_id=Time.now.to_f unless action_id
-      # making sure the action gets sent first, can't rely on sorting
-      action = hsh.delete(:action).to_s.gsub(/_/,'').downcase
-      write_line("Action: #{action}")
-      if authtype = hsh.delete(:authtype)
-        write_line("authtype: #{authtype}")
-      end
-      write_line("actionid: #{action_id}")
-      # write the rest of the options to the socket        
-      hsh.each{|key, value| write_line("#{key.to_s}: #{value}")}
-      write_line if terminate
+       @response_cache.synchronize do
+         action_id=Time.now.to_f unless action_id
+          # making sure the action gets sent first, can't rely on sorting
+          action = hsh.delete(:action).to_s.gsub(/_/,'').downcase
+          write_line("Action: #{action}")
+          if authtype = hsh.delete(:authtype)
+            write_line("authtype: #{authtype}")
+          end
+          write_line("actionid: #{action_id}")
+          # write the rest of the options to the socket        
+          hsh.each{|key, value| write_line("#{key.to_s}: #{value}")}
+          write_line if terminate
+        end
     end
     
     def write_line(line="")
