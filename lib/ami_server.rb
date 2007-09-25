@@ -552,7 +552,7 @@ require 'webrick'
   #                re and re.complete
   #                }
                   @response_cache_pending.wait_while{!response.complete}
-                return response
+                return @response_cache.delete(response)
               end
           end
         rescue Timeout::Error => e
