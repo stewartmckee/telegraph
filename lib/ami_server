@@ -80,7 +80,10 @@ class ServerHandler
       require File.dirname(__FILE__) + '/../vendor/plugins/telegraph/lib/ami_server'
       
       #First, start AMI DrbServer
-      ami_server = Telegraph::AMIServer.new(:username=>'trainer_manager', :secret=>'veecue')
+      ami_server = Telegraph::AMIServer.new(:host => Telegraph::Config::Globals['ami_host'],
+        :port => Telegraph::Config::Globals['ami_port'],
+        :username => Telegraph::Config::Globals['ami_username'],
+        :secret => Telegraph::Config::Globals['ami_password'])
       ami_server.connect
       puts "Loaded AMI Server"
       puts ami_server

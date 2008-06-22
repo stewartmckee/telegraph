@@ -28,15 +28,20 @@ module ActionController
 #Add voice specific functions to ActionController
 module ActionController
   class Base
-    def render_voice(&block)
+    def render_voice(options = {}, &block)
       begin
         if block_given?
           yield request.cc
         else
-          #This needs improvement.  Rely's too much on defaults
-          f= "#{template_root}/#{default_template_name(action_name)}.voice"
+          #This needs improvement.  Relies too much on defaults
+          template_name = default_template_name(options[:template] || action_name)
+          if respond_to?(:template_root)
+            f = File.join template_root, "#{template_name}.voice"
+          else
+            f = File.join RAILS_ROOT, 'app', 'views', "#{template_name}.voice" 
+          end
           render_voice do |voice|
-            eval File.read(f)
+            eval File.read(f), nil, f, 0
           end
         end
       rescue Errno::EPIPE 
