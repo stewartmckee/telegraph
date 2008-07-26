@@ -1,14 +1,19 @@
 agi_defaults: &agi_defaults
-  # specific IP, or 0.0.0.0 to listen on all interfaces
+  # what IP and port should Telegraph's AGI server listen on?
+  # specific IP, or 0.0.0.0 to listen on all interfaces.
+  # standard AGI port is 4573.
   agi_server: 0.0.0.0
-  # standard AGI port: 4573
   agi_port: 4573
+  # druby proxy.  don't need to change unless you know what you're doing.
   ami_server: druby://localhost:9000
-  # asterisk credentials for outgoing calls
+
+  # asterisk credentials to place outgoing calls.  change these to your
+  # asterisk outgoing settings (AMI) credentials.
   #ami_host: 'localhost'
   #ami_port: 5038
   #ami_username: 'asterisk'
   #ami_password: 'secret'
+
   # default to relative paths - should not be needed
   #outgoing_call_path: /var/spool/asterisk/outgoing
   #wakeup_call_path: /var/spool/asterisk/wakeups
