@@ -1,3 +1,7 @@
+This is a clone of http://telegraph.rubyforge.org/ with the intention of updating for Rails 3 and continuing development.
+
+
+
 Information about the poorly name, RAI (Rails Asterisk Integrator) to go here.
 
 The basic idea: integrate functionality of RAGI and RAMI while making asterisk be on par with
